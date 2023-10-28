@@ -9,6 +9,8 @@ def decompile(workInfo, compiledCode):
     for decompiler in decompilers:
         decompiler.decompilePrepare()
     for decompiler in decompilers:
+        decompiler.decompilePrepareFunctions()
+    for decompiler in decompilers:
         decompiler.decompileFunctions()
     for decompiler in decompilers:
         decompiler.decompileCode()
@@ -44,6 +46,16 @@ class ActorDecompiler:
             "comments": {}
         }
         
+    def decompilePrepareFunctions(self):
+        actor = self.actor
+        compiled = self.compiled
+        functions = self.functions
+        
+        print(f"正在准备角色 \033[4;32m{actor['name']}\033[0m 中的函数……")
+        for name, compiledBlock in compiled["procedures"].items():
+            print(f"正在准备函数 \033[4;32m{name}\033[0m ……")
+            functions[name] = compiledBlock
+
     def decompileFunctions(self):
         actor = self.actor
         compiled = self.compiled
@@ -53,7 +65,7 @@ class ActorDecompiler:
         for name, compiledBlock in compiled["procedures"].items():
             print(f"正在反编译函数 \033[4;32m{name}\033[0m ……")
             functions[name] = BlockDecompiler(compiledBlock, self).decompile()
-            
+
     def decompileCode(self):
         actor = self.actor
         compiled = self.compiled
@@ -117,7 +129,7 @@ class BlockDecompiler:
                 if ChildBlocks[i] is not None:
                     childBlock = BlockDecompiler(ChildBlocks[i], actor).decompile()
                     childBlock["parent_id"] = id
-                    if kind in { "event_block", "responder_block" } or kind.startswith("repeat"):
+                    if kind in { "event_block", "responder_block", "tell", "sync_tell" } or kind.startswith("repeat"):
                         inputName = "DO"
                     else:
                         inputName = CHILD_BLOCK_INPUT_NAME_GETTER_MAP[compiled["type"]](compiled, i)
