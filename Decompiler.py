@@ -99,7 +99,7 @@ class BlockDecompiler:
                 if ChildBlocks[i] is not None:
                     childBlock = BlockDecompiler(ChildBlocks[i], actor).decompile()
                     childBlock["parent_id"] = id
-                    if kind == "event_block":
+                    if kind == "event_block" or kind.startswith("repeat"):
                         inputName = "DO"
                     else:
                         inputName = CHILD_BLOCK_INPUT_NAME_GETTER_MAP[compiled["type"]](compiled, i)
@@ -124,7 +124,7 @@ class BlockDecompiler:
                     }
                 shadows[inputName] = createShadow("logic_empty", conditionBlock["id"])
                 
-        if kind in { "domain_block", "event_block", "procedures_2_parameter" }:
+        if kind in { "domain_block", "event_block", "procedures_2_parameter" } or kind.startswith("repeat"):
             for name, value in compiled["params"].items():
                 if isinstance(value, dict):
                     paramBlock = BlockDecompiler(value, actor).decompile()
@@ -134,7 +134,11 @@ class BlockDecompiler:
                     if paramType in SHADOW_ALL_TYPES:
                         for inName, value in paramFields.items():
                             shadows[name] = createShadow(paramType, paramBlock["id"], value)
-                    shadows[name] = createShadow("math_number")
+                    if name in { "condition", "BOOL" }:
+                        shadowType = "logic_empty"
+                    else:
+                        shadowType = "math_number"
+                    shadows[name] = createShadow(shadowType)
                     connection[paramBlock["id"]] = {
                         "type": "input",
                         "input_type": "value",
