@@ -4,6 +4,7 @@ from Tool import randomBlockID
 
 SHADOW_ALL_TYPES = {
     "math_number",
+    "controller_shadow",
     "text",
     "lists_get",
     "broadcast_input",
@@ -19,6 +20,10 @@ SHADOW_FIELD_ATTRIBUTES_MAP = {
         "name": "NUM",
         "constraints": "-Infinity,Infinity,0,",
         "allow_text": "true"
+    },
+    "controller_shadow": {
+        "name": "NUM",
+        "constraints": "-Infinity,Infinity,0,false"
     },
     "text": {
         "name": "TEXT"
@@ -51,6 +56,7 @@ SHADOW_FIELD_ATTRIBUTES_MAP = {
 }
 SHADOW_FIELD_TEXT_MAP = {
     "math_number": "0",
+    "controller_shadow": "0",
     "text": "",
     "lists_get": "?",
     "broadcast_input": "Hi",
