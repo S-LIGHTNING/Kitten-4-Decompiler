@@ -3,8 +3,15 @@ from MetaData import PROJECT
 
 def decompile(workInfo, compiledCode):
     print(f"开始反编译，作品名称：\033[4;32m{workInfo['name']}\033[0m。")
-    for i in compiledCode["compile_result"]:
-        ActorDecompiler(getActor(i["id"], compiledCode), i).decompile()
+    functions = {}
+    decompilers = [ActorDecompiler(getActor(i["id"], compiledCode), i, functions)
+                   for i in compiledCode["compile_result"]]
+    for decompiler in decompilers:
+        decompiler.decompilePrepare()
+    for decompiler in decompilers:
+        decompiler.decompileFunctions()
+    for decompiler in decompilers:
+        decompiler.decompileCode()
     writteWorkInfo(workInfo, compiledCode)
     clean(compiledCode)
     print("反编译完成。")
@@ -18,29 +25,40 @@ def getActor(actorID, compiledCode):
     
 class ActorDecompiler:
     
-    def __init__(self, actor, compiled) -> None:
+    def __init__(self, actor, compiled, functions) -> None:
         self.blocks = {}
         self.connections = {}
-        self.functions = {}
         self.actor = actor
         self.compiled = compiled
+        self.functions = functions
 
-    def decompile(self):
+    def decompilePrepare(self):
         blocks = self.blocks
         connections = self.connections
-        functions = self.functions
         actor = self.actor
-        compiled = self.compiled
         
-        print(f"正在反编译角色 \033[4;32m{actor['name']}\033[0m 的代码……")
+        print(f"正在准备角色 \033[4;32m{actor['name']}\033[0m……")
         actor["block_data_json"] = {
             "blocks": blocks,
             "connections": connections,
             "comments": {}
         }
+        
+    def decompileFunctions(self):
+        actor = self.actor
+        compiled = self.compiled
+        functions = self.functions
+        
+        print(f"正在反编译角色 \033[4;32m{actor['name']}\033[0m 中的函数……")
         for name, compiledBlock in compiled["procedures"].items():
-            print(f"正在反编译函数 \033[4;32m{name}\033[0m 的代码……")
+            print(f"正在反编译函数 \033[4;32m{name}\033[0m ……")
             functions[name] = BlockDecompiler(compiledBlock, self).decompile()
+            
+    def decompileCode(self):
+        actor = self.actor
+        compiled = self.compiled
+        
+        print(f"正在反编译角色 \033[4;32m{actor['name']}\033[0m 的代码……")
         for id, compiledBlock in compiled["compiled_block_map"].items():
             BlockDecompiler(compiledBlock, self).decompile()
 
@@ -99,7 +117,7 @@ class BlockDecompiler:
                 if ChildBlocks[i] is not None:
                     childBlock = BlockDecompiler(ChildBlocks[i], actor).decompile()
                     childBlock["parent_id"] = id
-                    if kind == "event_block" or kind.startswith("repeat"):
+                    if kind in { "event_block", "responder_block" } or kind.startswith("repeat"):
                         inputName = "DO"
                     else:
                         inputName = CHILD_BLOCK_INPUT_NAME_GETTER_MAP[compiled["type"]](compiled, i)
@@ -184,11 +202,6 @@ def decompileProcedures2Defnoreturn(decompiler):
         arg = ElementTree.SubElement(mutation, "arg")
         arg.set("name", inputName)
         
-        params = block["params"] = {}
-        params[name] = {
-            "count": count
-        }
-        
         shadows[inputName] = createShadow("math_number")
         paramBlock = BlockDecompiler({
             "id": randomBlockID(),
@@ -225,9 +238,9 @@ def decompileProcedures2Callnoreturn(decompiler):
     mutation.set("name", name)
     mutation.set("def_id", function['id'])
     
+    count = 0
     for name, value in compiled["params"].items():
         paramBlock = BlockDecompiler(value, actor).decompile()
-        count = function["params"][name]["count"]
         shadows[f"ARG{count}"] = createShadow("default_value", paramBlock["id"])
         
         param = ElementTree.SubElement(mutation, "procedures_2_parameter_shadow")
@@ -239,6 +252,8 @@ def decompileProcedures2Callnoreturn(decompiler):
             "input_type": "value",
             "input_name": f"ARG{count}"
         }
+        
+        count += 1
         
     block["mutation"] = ElementTree.tostring(mutation, encoding='unicode')
 
@@ -257,7 +272,8 @@ def getControlsIfChildBlockInputName(compiledBlock, count):
 
 CHILD_BLOCK_INPUT_NAME_GETTER_MAP = {
     "controls_if": getControlsIfChildBlockInputName,
-    "procedures_2_defnoreturn": lambda compiledBlock, count: "STACK"
+    "procedures_2_defnoreturn": lambda compiledBlock, count: "STACK",
+    "warp": lambda compiledBlock, count: "DO"
 }
 
 CONDITIONS_INPUT_NAME_GETTER_MAP = {
