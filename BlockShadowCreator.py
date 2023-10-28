@@ -11,7 +11,8 @@ SHADOW_ALL_TYPES = {
     "get_whole_audios",
     "get_current_costume",
     "default_value",
-    "get_current_scene"
+    "get_current_scene",
+    "get_sensing_current_scene"
 }
 SHADOW_FIELD_ATTRIBUTES_MAP = {
     "math_number": {
@@ -43,6 +44,9 @@ SHADOW_FIELD_ATTRIBUTES_MAP = {
     },
     "get_current_scene": {
         "name": "scene"
+    },
+    "get_sensing_current_scene": {
+        "name": "scene"
     }
 }
 SHADOW_FIELD_TEXT_MAP = {
@@ -54,7 +58,8 @@ SHADOW_FIELD_TEXT_MAP = {
     "get_whole_audios": "all",
     "get_current_costume": "",
     "default_value": "0",
-    "get_current_scene": ""
+    "get_current_scene": "",
+    "get_sensing_current_scene": ""
 }
 
 def createShadow(type, id=None, text=None):
