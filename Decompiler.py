@@ -191,7 +191,8 @@ def decompileControlsIf(decompiler):
     block = decompiler.block
     shadows = decompiler.shadows
     compiled = decompiler.compiled
-    if compiled["child_block"][-1] is None:
+    childBlocks = compiled["child_block"]
+    if len(childBlocks) == 2 and childBlocks[-1] is None:
         shadows["EXTRA_ADD_ELSE"] = ""
     else:
         block["mutation"] = f"<mutation elseif=\"{len(compiled['conditions']) - 1}\" else=\"1\"></mutation>"

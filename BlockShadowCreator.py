@@ -6,6 +6,7 @@ SHADOW_ALL_TYPES = {
     "math_number",
     "controller_shadow",
     "text",
+    "logic_empty",
     "lists_get",
     "broadcast_input",
     "get_audios",

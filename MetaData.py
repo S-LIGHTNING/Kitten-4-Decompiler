@@ -1,6 +1,6 @@
 class PROJECT:
     NAME = "源码编辑器4反编译器"
-    VERSIONS = "0.5.3"
+    VERSIONS = "0.5.4"
     class AUTHOR:
         NAME = "SLIGHTNING"
 
