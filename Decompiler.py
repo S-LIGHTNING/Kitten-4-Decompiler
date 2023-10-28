@@ -176,11 +176,14 @@ def decompileTextJoin(decompiler):
     block["mutation"] = f"<mutation items=\"{len(compiled['params'])}\"></mutation>"
 
 def decompileControlsIf(decompiler):
+    block = decompiler.block
     shadows = decompiler.shadows
     compiled = decompiler.compiled
     if len(compiled["child_block"]) == len(compiled["conditions"]):
+        block["mutation"] = f"<mutation elseif=\"{len(compiled['conditions']) - 1}\"></mutation>"
         shadows["EXTRA_ADD_ELSE"] = ""
     else:
+        block["mutation"] = f"<mutation elseif=\"{len(compiled['conditions']) - 1}\" else=\"1\"></mutation>"
         shadows["ELSE_TEXT"] = ""
 
 def decompileProcedures2Defnoreturn(decompiler):
@@ -266,7 +269,7 @@ DECOMPILE_SPECIAL_MAP = {
 }
 
 def getControlsIfChildBlockInputName(compiledBlock, count):
-    if count <= len(compiledBlock["conditions"]):
+    if count < len(compiledBlock["conditions"]):
         return "DO" + str(count)
     else:
         return "ELSE"
