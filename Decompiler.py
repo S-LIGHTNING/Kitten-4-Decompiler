@@ -98,7 +98,7 @@ class BlockDecompiler:
         block["field_extra_attr"] = {}
         block["comment"] = None
         block["mutation"] = ""
-        block["is_output"] = type in SHADOW_ALL_TYPES or type == "procedures_2_stable_parameter"
+        block["is_output"] = type in SHADOW_ALL_TYPES or type in { "logic_boolean", "procedures_2_stable_parameter" }
         block["parent_id"] = None
         
         if type in DECOMPILE_SPECIAL_MAP:
@@ -152,11 +152,12 @@ class BlockDecompiler:
                     if paramType in SHADOW_ALL_TYPES:
                         for inName, value in paramFields.items():
                             shadows[name] = createShadow(paramType, paramBlock["id"], value)
-                    if name in { "condition", "BOOL" }:
-                        shadowType = "logic_empty"
                     else:
-                        shadowType = "math_number"
-                    shadows[name] = createShadow(shadowType)
+                        if name in { "condition", "BOOL" }:
+                            shadowType = "logic_empty"
+                        else:
+                            shadowType = "math_number"
+                        shadows[name] = createShadow(shadowType)
                     connection[paramBlock["id"]] = {
                         "type": "input",
                         "input_type": "value",
