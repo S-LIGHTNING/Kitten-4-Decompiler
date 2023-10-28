@@ -99,7 +99,10 @@ class BlockDecompiler:
                 if ChildBlocks[i] is not None:
                     childBlock = BlockDecompiler(ChildBlocks[i], actor).decompile()
                     childBlock["parent_id"] = id
-                    inputName = CHILD_BLOCK_INPUT_NAME_GETTER_MAP[compiled["type"]](compiled, i)
+                    if kind == "event_block":
+                        inputName = "DO"
+                    else:
+                        inputName = CHILD_BLOCK_INPUT_NAME_GETTER_MAP[compiled["type"]](compiled, i)
                     connection[childBlock["id"]] = {
                         "type": "input",
                         "input_type": "statement",
@@ -112,7 +115,7 @@ class BlockDecompiler:
             for i in range(len(conditions)):
                 conditionBlock = BlockDecompiler(conditions[i], actor).decompile()
                 conditionBlock["parent_id"] = id
-                inputName = CONDITIONS_INPUT_NAME_GETTER_MAP[compiled["type"]](compiled, i)
+                inputName = CONDITIONS_INPUT_NAME_GETTER_MAP[compiled["type"]](i)
                 if conditionBlock["type"] != "logic_empty":
                     connection[conditionBlock["id"]] = {
                         "type": "input",
@@ -121,7 +124,7 @@ class BlockDecompiler:
                     }
                 shadows[inputName] = createShadow("logic_empty", conditionBlock["id"])
                 
-        if kind in { "domain_block", "procedures_2_parameter" }:
+        if kind in { "domain_block", "event_block", "procedures_2_parameter" }:
             for name, value in compiled["params"].items():
                 if isinstance(value, dict):
                     paramBlock = BlockDecompiler(value, actor).decompile()
@@ -131,7 +134,6 @@ class BlockDecompiler:
                     if paramType in SHADOW_ALL_TYPES:
                         for inName, value in paramFields.items():
                             shadows[name] = createShadow(paramType, paramBlock["id"], value)
-                    # else:
                     shadows[name] = createShadow("math_number")
                     connection[paramBlock["id"]] = {
                         "type": "input",
