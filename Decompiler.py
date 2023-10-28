@@ -154,7 +154,7 @@ class BlockDecompiler:
                     }
                 shadows[inputName] = createShadow("logic_empty", conditionBlock["id"])
                 
-        if kind in { "domain_block", "event_block", "wait_until", "procedures_2_parameter" } or kind.startswith("repeat"):
+        if kind in { "domain_block", "event_block", "wait_until", "procedures_2_parameter", "procedures_2_return_value" } or kind.startswith("repeat"):
             for name, value in compiled["params"].items():
                 if isinstance(value, dict):
                     paramBlock = BlockDecompiler(value, actor).decompile()
@@ -237,7 +237,16 @@ def decompileProcedures2Defnoreturn(decompiler):
         
     block["mutation"] = ElementTree.tostring(mutation, encoding='unicode')
 
-def decompileProcedures2Callnoreturn(decompiler):
+def decompileProcedures2ReturnValue(decompiler):
+    block = decompiler.block
+    shadows = decompiler.shadows
+    compiled = decompiler.compiled
+    
+    shadows["PROCEDURES_2_DEFRETURN_RETURN"] = ""
+    shadows["PROCEDURES_2_DEFRETURN_RETURN_MUTATOR"] = ""
+    block["mutation"] = f"<mutation items=\"{len(compiled['params'])}\"></mutation>"
+
+def decompileProcedures2Call(decompiler):
     block = decompiler.block
     connection = decompiler.connection
     shadows = decompiler.shadows
@@ -276,7 +285,9 @@ DECOMPILE_SPECIAL_MAP = {
     "text_join": decompileTextJoin,
     "controls_if": decompileControlsIf,
     "procedures_2_defnoreturn": decompileProcedures2Defnoreturn,
-    "procedures_2_callnoreturn": decompileProcedures2Callnoreturn
+    "procedures_2_return_value": decompileProcedures2ReturnValue,
+    "procedures_2_callnoreturn": decompileProcedures2Call,
+    "procedures_2_callreturn": decompileProcedures2Call
 }
 
 def getControlsIfChildBlockInputName(compiledBlock, count):
