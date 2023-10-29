@@ -154,7 +154,7 @@ class BlockDecompiler:
                     }
                 shadows[inputName] = createShadow("logic_empty", conditionBlock["id"])
                 
-        if kind in { "domain_block", "event_block", "responder_block", "wait_until", "procedures_2_parameter", "procedures_2_return_value" } or kind.startswith("repeat"):
+        if kind in { "domain_block", "event_block", "responder_block", "wait_until", "tell", "sync_tell", "procedures_2_parameter", "procedures_2_return_value" } or kind.startswith("repeat"):
             for name, value in compiled["params"].items():
                 if isinstance(value, dict):
                     paramBlock = BlockDecompiler(value, actor).decompile()
