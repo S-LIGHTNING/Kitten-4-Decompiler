@@ -27,7 +27,7 @@ def saveSourceCode(sourceCode):
     root.title("保存源码文件")
     while True:
         path = filedialog.asksaveasfilename(defaultextension = ".bcm", filetypes = [("源码文件", ".bcm"), ("源码4文件", ".bcm4"), ("所有文件", ".*")])
-        print(f"源码将被保存到文件 \033[4m{path}\033[0m。")
+        print(f"正在将源码保存到文件 \033[4m{path}\033[0m……")
         try:
             with open(path, "w") as file:
                 json.dump(sourceCode, file)
