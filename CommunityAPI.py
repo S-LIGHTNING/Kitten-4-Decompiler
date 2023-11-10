@@ -6,7 +6,7 @@ from Tool import showError
 API_GET_WORK_INFO = "https://api-creation.codemao.cn/kitten/r2/work/player/load/"
 
 def getWorkInfo(workID):
-    URL = API_GET_WORK_INFO + workID
+    URL = API_GET_WORK_INFO + str(workID)
     response = requests.get(URL)
     
     if response.status_code != 200:
@@ -16,7 +16,7 @@ def getWorkInfo(workID):
     except json.JSONDecodeError:
         showError("解析作品信息数据失败。", response.text)
         
-def getCompiledCode(workURL):
+def getCompiledWork(workURL):
     URL = workURL
     response = requests.get(URL)
     

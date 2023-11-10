@@ -2,24 +2,38 @@ import json
 import tkinter
 from tkinter import filedialog
 import traceback
-from CommunityAPI import getCompiledCode, getWorkInfo
-from Decompiler import decompile
+from CommunityAPI import getCompiledWork, getWorkInfo
+from Decompiler import WorkDecompiler
 from MetaData import *
 from Tool import showError
+from UI import *
 
 def main():
     printMetaData()
-    
-    workID = input("请输入作品 ID：")
+
+    workID = UI.askInteger("请输入作品 ID")
     workInfo = getWorkInfo(workID)
-    print(f"成功获取作品 \033[4;32m{workInfo['name']}\033[0m 的信息。")
-    workCompiledCode = getCompiledCode(workInfo["source_urls"][0])
-    print(f"成功获取作品 \033[4;32m{workInfo['name']}\033[0m 的编译文件。")
+    log(INFO, f"成功获取作品 \033[4;32m{workInfo['name']}\033[0m 的信息。")
+    compiledWork = getCompiledWork(workInfo["source_urls"][0])
+    log(INFO, f"成功获取作品 \033[4;32m{workInfo['name']}\033[0m 的编译文件。")
     try:
-        decompile(workInfo, workCompiledCode)
+        decompiler = WorkDecompiler(workInfo, compiledWork)
+        decompiler.onStart = lambda: log(INFO, f"开始反编译，作品名称：\033[4;32m{workInfo['name']}\033[0m。")
+        def setActorLog(actor):
+            actor.onPrepare = lambda: log(VERBOSE, f"正在准备角色 \033[4;32m{actor.actor['name']}\033[0m……")
+            actor.onPrepareFunction = lambda name: log(VERBOSE, f"正在准备函数 \033[4;32m{name}\033[0m ……")
+            actor.onStart = lambda: log(VERBOSE, f"正在反编译角色 \033[4;32m{actor.actor['name']}\033[0m……")
+            actor.onStartFunction = lambda name: log(VERBOSE, f"正在反编译函数 \033[4;32m{name}\033[0m……")
+        decompiler.onCreateActor = setActorLog
+        decompiler.onPrepareActors = lambda: log(INFO, "正在准备角色……")
+        decompiler.onStartActors = lambda: log(INFO, "正在反编译角色……")
+        decompiler.onWritteWorkInfo = lambda: log(INFO, "正在清理……")
+        decompiler.onClean = lambda: log(INFO, "正在写入作品信息……")
+        decompiler.onFinish = lambda: log(INFO, "反编译完成。")
+        decompiler.start()
     except:
         showError("反编译失败。", traceback.format_exc())
-    saveSourceCode(workCompiledCode)
+    saveSourceCode(compiledWork)
 
 def saveSourceCode(sourceCode):
     input("按下回车键保存源码")
@@ -27,7 +41,7 @@ def saveSourceCode(sourceCode):
     root.title("保存源码文件")
     while True:
         path = filedialog.asksaveasfilename(defaultextension = ".bcm", filetypes = [("源码文件", ".bcm"), ("源码4文件", ".bcm4"), ("所有文件", ".*")])
-        print(f"正在将源码保存到文件 \033[4m{path}\033[0m……")
+        print(f"正在将源码保存到文件 \033[4m{path}\033[0m ……")
         try:
             with open(path, "w") as file:
                 json.dump(sourceCode, file)
