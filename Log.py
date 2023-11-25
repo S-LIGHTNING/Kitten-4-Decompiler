@@ -16,11 +16,6 @@ class Log:
         self.message = message
 
 def log(level, message):
-    if level >= WARNING:
-        message = {
-                WARNING: "警告",
-                ERROR: "错误"
-            }[level] + "：" + message
     log = Log(level, message)
     onLog(log)
     if level >= logLevel:

@@ -23,6 +23,7 @@ class WorkDecompiler:
         self.writteWorkInfo()
         self.clean()
         self.onFinish()
+        return self.work
 
     def getActor(self, actorID):
         theatre = self.work["theatre"]
@@ -47,7 +48,7 @@ class WorkDecompiler:
         }
         self.work["work_source_label"] = 0
         self.work["sample_id"] = ""
-        self.work["project_name"] = f"【再创作】{self.workInfo['name']}"
+        self.work["project_name"] = self.workInfo["name"]
         self.work["toolbox_order"] = self.work["last_toolbox_order"] = [
             "event", "control", "action", "appearance", "audio", "pen", "sensing",
             "operator", "data", "data", "procedure", "mobile_control", "physic",
@@ -229,12 +230,18 @@ class ControlsIfDecompiler(BlockDecompiler):
         else:
             return "ELSE"
 
+class AskAndChooseDecompiler(BlockDecompiler):
+    def start(self):
+        block = super().start()
+        self.block["mutation"] = f"<mutation items=\"{len(self.compiled['params']) - 1}\"></mutation>"
+        return block
+
 class TextJoinDecompiler(BlockDecompiler):
     def start(self):
         block = super().start()
         self.block["mutation"] = f"<mutation items=\"{len(self.compiled['params'])}\"></mutation>"
         return block
-    
+
 class TextSelectChangeableDecompiler(BlockDecompiler):
     def start(self):
         block = super().start()
@@ -298,12 +305,16 @@ class Procedures2CallDecompiler(BlockDecompiler):
         self.nexts()
 
         name = self.compiled["procedure_name"]
-        function = self.actor.work.functions[name]
+        try:
+            functionID = self.actor.work.functions[name]["id"]
+        except KeyError:
+            functionID = randomBlockID()
+            self.block["disabled"] = True
         self.shadows["NAME"] = ""
         self.fields["NAME"] = name
         mutation = ElementTree.Element("mutation")
         mutation.set("name", name)
-        mutation.set("def_id", function['id'])
+        mutation.set("def_id", functionID)
 
         count = 0
         for name, value in self.compiled["params"].items():
@@ -328,6 +339,7 @@ class Procedures2CallDecompiler(BlockDecompiler):
 
 SPECIAL_DECOMPILER_MAP = {
     "controls_if": ControlsIfDecompiler,
+    "ask_and_choose": AskAndChooseDecompiler,
     "text_join": TextJoinDecompiler,
     "text_select_changeable": TextSelectChangeableDecompiler,
     "procedures_2_defnoreturn": Procedures2DefnoreturnDecompiler,

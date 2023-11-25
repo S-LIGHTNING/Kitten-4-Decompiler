@@ -8,7 +8,7 @@ def showError(message, info):
     if askYesNot("是否查看更多信息？"):
         print(info)
         input("按下回车键退出程序")
-    exit()
+    raise
 
 def randomBlockID():
     return ''.join([random.choice('0123456789abcdefghigklmnopqrstuvwxyzABCDEFGHIGKLMNOPQRSTUVWXYZ') for i in range(20)])
