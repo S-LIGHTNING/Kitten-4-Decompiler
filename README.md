@@ -1,8 +1,8 @@
-# 源码编辑器4反编译器
+# 源码反编译器4
 
 ## 一、简介
 
-`源码编辑器4反编译器`是针对使用[编程猫](https://shequ.codemao.cn)[`源码编辑器4`](https://kitten4.codemao.cn/)创作的已发布的作品的反编译工具。
+`源码反编译器4`是针对使用[编程猫](https://shequ.codemao.cn)[`源码编辑器4`](https://kitten4.codemao.cn/)创作的已发布的作品的反编译工具。
 
 ## 二、局限性
 
