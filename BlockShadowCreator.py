@@ -2,6 +2,7 @@ from xml.etree import ElementTree
 
 from Tool import randomBlockID
 
+# 这些类型的积木完全嵌入在父母积木中，不是独立的积木，可以被其它积木覆盖在上面
 SHADOW_ALL_TYPES = {
     "math_number",
     "controller_shadow",
@@ -16,6 +17,8 @@ SHADOW_ALL_TYPES = {
     "get_current_scene",
     "get_sensing_current_scene"
 }
+
+# 参数信息
 SHADOW_FIELD_ATTRIBUTES_MAP = {
     "math_number": {
         "name": "NUM",
@@ -55,6 +58,8 @@ SHADOW_FIELD_ATTRIBUTES_MAP = {
         "name": "scene"
     }
 }
+
+# 参数默认值
 SHADOW_FIELD_TEXT_MAP = {
     "math_number": "0",
     "controller_shadow": "0",
@@ -82,8 +87,11 @@ def createShadow(type, id=None, text=None):
     shadow.set("id", id)
     shadow.set("visible", "visible")
     shadow.set("editable", "true")
+    
+    # 写入参数信息
     field = ElementTree.SubElement(shadow, "field")
     for name, value in attrs.items():
         field.set(name, value)
     field.text = text
+
     return ElementTree.tostring(shadow, encoding='unicode')

@@ -1,7 +1,7 @@
 from BlockShadowCreator import *
 
-class WorkDecompiler:
-    
+class KittenWorkDecompiler:
+
     def __init__(self, workInfo, compiledWork) -> None:
         self.workInfo = workInfo
         self.work = compiledWork
@@ -9,17 +9,24 @@ class WorkDecompiler:
     
     def start(self):
         self.onStart()
+
+        # 创建角色反编译器
         decompilers = []
         for ActorcompiledBlocks in self.work["compile_result"]:
             actor = ActorDecompiler(self, self.getActor(ActorcompiledBlocks["id"]), ActorcompiledBlocks)
             self.onCreateActor(actor)
             decompilers.append(actor)
+
+        # 准备所有的角色
         self.onPrepareActors()
         for decompiler in decompilers:
             decompiler.prepare()
+
+        # 开始反编译所有的角色
         self.onStartActors()
         for decompiler in decompilers:
             decompiler.start()
+
         self.writteWorkInfo()
         self.clean()
         self.onFinish()
@@ -57,9 +64,7 @@ class WorkDecompiler:
             "microbit", "ai", "midimusic"
         ]
 
-    def onStart(self):
-        print(f"开始反编译，作品名称：\033[4;32m{self.workInfo['name']}\033[0m。")
-
+    def onStart(self): pass
     def onCreateActor(self, actor): pass
     def onPrepareActors(self): pass
     def onStartActors(self): pass
@@ -68,7 +73,7 @@ class WorkDecompiler:
     def onFinish(self): pass
     
 class ActorDecompiler:
-    
+
     def __init__(self, work, actor, compiledBlocks) -> None:
         self.work = work
         self.actor = actor
@@ -78,20 +83,28 @@ class ActorDecompiler:
         
     def prepare(self):
         self.onPrepare()
+
+        # 把积木数据关联到角色
         self.actor["block_data_json"] = {
             "blocks": self.blocks,
             "connections": self.connections,
             "comments": {}
         }
+
+        # 把角色中的函数添加到作品中
         for name, compiledFunction in self.compiled["procedures"].items():
             self.onPrepareFunction(name)
             self.work.functions[name] = compiledFunction
 
     def start(self):
         self.onStart()
+
+        # 反编译角色所有的函数
         for name, compiledFunction in self.compiled["procedures"].items():
             self.onStartFunction(name)
             self.work.functions[name] = Procedures2DefnoreturnDecompiler(compiledFunction, self).start()
+
+        # 反编译角色其余的积木
         for id, compiledBlocks in self.compiled["compiled_block_map"].items():
             getBlockDecompiler(compiledBlocks, self).start()
 
@@ -100,6 +113,7 @@ class ActorDecompiler:
     def onStart(self): pass
     def onStartFunction(self, name): pass
 
+# 根据积木类型创建积木反编译器
 def getBlockDecompiler(compiled, actor):
     type = compiled["type"]
     if type in SPECIAL_DECOMPILER_MAP:
@@ -148,6 +162,7 @@ class BlockDecompiler:
         self.actor.connections[self.id] = self.connection
         self.actor.blocks[self.id] = self.block
 
+    # 反编译所有连接到当前积木上的积木
     def nexts(self):
         if "next_block" in self.compiled:
             nextBlock = getBlockDecompiler(self.compiled["next_block"], self.actor).start()
@@ -156,6 +171,7 @@ class BlockDecompiler:
                 "type": "next"
             }
 
+    # 反编译 C 型积木所有 C 中的积木
     def children(self):
         if "child_block" in self.compiled:
             ChildBlocks = self.compiled["child_block"]
@@ -173,6 +189,7 @@ class BlockDecompiler:
 
     def getChildInputName(self, count): return "DO"
 
+    # 反编译所有判断条件上的积木
     def conditions(self):
         if "conditions" in self.compiled:
             conditions = self.compiled["conditions"]
@@ -188,6 +205,7 @@ class BlockDecompiler:
                     }
                 self.shadows[inputName] = createShadow("logic_empty", conditionBlock["id"])
 
+    # 反编译所有嵌入到当前积木的作为参数的积木
     def params(self):
         for name, value in self.compiled["params"].items():
             if isinstance(value, dict):
@@ -195,15 +213,19 @@ class BlockDecompiler:
                 paramBlock["parent_id"] = self.id
                 paramType = paramBlock["type"]
                 paramFields = paramBlock["fields"]
+
                 if paramType in SHADOW_ALL_TYPES:
+                    # 当前参数没有嵌入其它积木，转换参数信息
                     for inName, value in paramFields.items():
                         self.shadows[name] = createShadow(paramType, paramBlock["id"], value)
                 else:
+                    # 当前参数嵌入了其它积木，生成参数信息
                     if name in { "condition", "BOOL" }:
                         shadowType = "logic_empty"
                     else:
                         shadowType = "math_number"
                     self.shadows[name] = createShadow(shadowType)
+
                 self.connection[paramBlock["id"]] = {
                     "type": "input",
                     "input_type": "value",
@@ -262,10 +284,11 @@ class Procedures2DefnoreturnDecompiler(BlockDecompiler):
         count = 0
         for name, value in self.compiled["params"].items():
             inputName = f"PARAMS{count}"
-            
+
             arg = ElementTree.SubElement(mutation, "arg")
             arg.set("name", inputName)
-            
+
+            # 生成参数积木
             self.shadows[inputName] = createShadow("math_number")
             paramBlock = getBlockDecompiler({
                 "id": randomBlockID(),
@@ -277,6 +300,7 @@ class Procedures2DefnoreturnDecompiler(BlockDecompiler):
                 }
             }, self.actor).start()
             paramBlock["parent_id"] = self.block["id"]
+
             self.connection[paramBlock["id"]] = {
                 "type": "input",
                 "input_type": "value",
@@ -304,6 +328,7 @@ class Procedures2CallDecompiler(BlockDecompiler):
         self.info()
         self.nexts()
 
+        # 向函数调用积木中写入调用的函数的信息
         name = self.compiled["procedure_name"]
         try:
             functionID = self.actor.work.functions[name]["id"]
@@ -316,6 +341,7 @@ class Procedures2CallDecompiler(BlockDecompiler):
         mutation.set("name", name)
         mutation.set("def_id", functionID)
 
+        # 写入参数
         count = 0
         for name, value in self.compiled["params"].items():
             paramBlock = getBlockDecompiler(value, self.actor).start()
@@ -337,6 +363,7 @@ class Procedures2CallDecompiler(BlockDecompiler):
 
         return self.block
 
+# 特殊的积木需要特殊反编译
 SPECIAL_DECOMPILER_MAP = {
     "controls_if": ControlsIfDecompiler,
     "ask_and_choose": AskAndChooseDecompiler,

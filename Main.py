@@ -2,7 +2,8 @@ import json
 import traceback
 
 from CommunityAPI import *
-from Decompiler import WorkDecompiler
+from KittenDecompiler import KittenWorkDecompiler
+from CoCoDecompiler import CoCoWorkDecompiler
 from MetaData import *
 from Tool import showError
 from UI import *
@@ -11,16 +12,25 @@ from HTTP import HTTP
 def main():
     printMetaData()
 
-    workID = UI.askInteger("请输入作品 ID")
+    workID = UI.askInteger("请输入要反编译的作品 ID")
 
-    workInfo = HTTP.getJSON(API_GET_RELEASED_WORK_INFO + str(workID))
+    workInfo = getWorkInfo(workID)
     log(INFO, f"成功获取作品 \033[4;32m{workInfo['name']}\033[0m 的信息。")
+    log(INFO, f"该作品由 \033[4;94m{workInfo['type']}\033[0m {workInfo['version']} 版本制作")
 
-    compiledWork = HTTP.getJSON(workInfo["source_urls"][0])
+    compiledWorkURL = getCompiledWorkURL(workInfo)
+    log(INFO, f"成功获取作品 \033[4;32m{workInfo['name']}\033[0m 的编译文件 URL。")
+
+    compiledWork = HTTP.getJSON(compiledWorkURL)
     log(INFO, f"成功获取作品 \033[4;32m{workInfo['name']}\033[0m 的编译文件。")
 
     try:
-        decompiler = WorkDecompiler(workInfo, compiledWork)
+        decompiler = {
+            "KITTEN4": KittenWorkDecompiler,
+            "KITTEN3": KittenWorkDecompiler,
+            "KITTEN2": KittenWorkDecompiler,
+            "COCO": CoCoWorkDecompiler,
+        }[workInfo["type"]](workInfo, compiledWork)
         decompiler.onStart = lambda: log(INFO, f"开始反编译，作品名称：\033[4;32m{workInfo['name']}\033[0m。")
         def setActorLog(actor):
             actor.onPrepare = lambda: log(VERBOSE, f"正在准备角色 \033[4;32m{actor.actor['name']}\033[0m……")
@@ -36,12 +46,24 @@ def main():
         decompiler.start()
     except:
         showError("反编译失败。", traceback.format_exc())
-    saveSourceCode(compiledWork)
+    saveSourceCode(compiledWork, workInfo["type"])
 
-def saveSourceCode(sourceCode):
+def saveSourceCode(sourceCode, type):
     input("按下回车键保存源码")
+    defaultType = {
+        "KITTEN4": ".bcm4",
+        "KITTEN3": ".bcm",
+        "KITTEN2": ".bcm",
+        "COCO": ".json"
+    }[type]
+    fileTypes = {
+        "KITTEN4": (("Kitten 4 源码文件", ".bcm4"), ("Kitten 源码文件", ".bcm"), ("所有文件", ".*")),
+        "KITTEN3": (("Kitten 源码文件", ".bcm"), ("所有文件", ".*")),
+        "KITTEN2": (("Kitten 源码文件", ".bcm"), ("所有文件", ".*")),
+        "COCO": (("CoCo 源码文件", ".json"), ("所有文件", ".*"))
+    }[type]
     while True:
-        path = UI.askSaveFilePath(defaultType=".bcm", fileTypes=(("源码文件", ".bcm"), ("源码4文件", ".bcm4"), ("所有文件", ".*")))
+        path = UI.askSaveFilePath(defaultType=defaultType, fileTypes=fileTypes)
         if path == "":
             if UI.askYesNot("要取消保存文件吗？"):
                 print("已取消保存文件")
@@ -54,10 +76,11 @@ def saveSourceCode(sourceCode):
                 input("文件保存成功，按下回车键退出程序")
                 return
             except Exception:
+                traceback.print_exc()
                 log(ERROR, "保存失败，请尝试选择新的保存位置。")
 
 if __name__ == "__main__":
     try:
         main()
-    except:
+    except KeyboardInterrupt:
         pass
