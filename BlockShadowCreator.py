@@ -92,6 +92,6 @@ def createShadow(type, id=None, text=None):
     field = ElementTree.SubElement(shadow, "field")
     for name, value in attrs.items():
         field.set(name, value)
-    field.text = text
+    field.text = str(text)
 
     return ElementTree.tostring(shadow, encoding='unicode')

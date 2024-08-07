@@ -1,12 +1,12 @@
 class CoCoWorkDecompiler:
-    
+
     def __init__(self, workInfo, compiledWork) -> None:
         self.workInfo = workInfo
         self.work = compiledWork
-    
+
     def start(self):
         self.onStart()
-        self.writteWorkInfo()
+        self.writeWorkInfo()
         self.clean()
         self.onFinish()
         return self.work
@@ -23,13 +23,14 @@ class CoCoWorkDecompiler:
             except KeyError:
                 pass
 
-    def writteWorkInfo(self):
+    def writeWorkInfo(self):
         self.work["authorId"] = self.workInfo["author"]["ID"]
         self.work["title"] = self.workInfo["name"]
         self.work["screens"] = {}
         self.work["screenIds"] = []
         for screen in self.work["screenList"]:
             ID = screen["id"]
+            screen["snapshot"] = ""
             self.work["screens"][ID] = screen
             self.work["screenIds"].append(ID)
             screen["primitiveVariables"] = []

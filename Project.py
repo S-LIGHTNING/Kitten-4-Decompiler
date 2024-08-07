@@ -94,7 +94,7 @@ class Project:
         with open(f"{self.dir}\\原源码.bcm", "r") as file:
             old = json.load(file)
         new = KittenWorkDecompiler(workInfo, compiledWork).start()
-        with open(f"{self.dir}\\源码.bcm", "r") as file:
+        with open(f"{self.dir}\\源码.bcm", "r", encoding='utf-8') as file:
             edited = json.load(file)
 
         log(INFO, f"正在查找原作品更改……")

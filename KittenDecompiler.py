@@ -366,6 +366,7 @@ class Procedures2CallDecompiler(BlockDecompiler):
 # 特殊的积木需要特殊反编译
 SPECIAL_DECOMPILER_MAP = {
     "controls_if": ControlsIfDecompiler,
+    "controls_if_no_else": ControlsIfDecompiler,
     "ask_and_choose": AskAndChooseDecompiler,
     "text_join": TextJoinDecompiler,
     "text_select_changeable": TextSelectChangeableDecompiler,

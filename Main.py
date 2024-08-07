@@ -40,7 +40,7 @@ def main():
         decompiler.onCreateActor = setActorLog
         decompiler.onPrepareActors = lambda: log(INFO, "正在准备角色……")
         decompiler.onStartActors = lambda: log(INFO, "正在反编译角色……")
-        decompiler.onWritteWorkInfo = lambda: log(INFO, "正在清理……")
+        decompiler.onWriteWorkInfo = lambda: log(INFO, "正在清理……")
         decompiler.onClean = lambda: log(INFO, "正在写入作品信息……")
         decompiler.onFinish = lambda: log(INFO, "反编译完成。")
         decompiler.start()
@@ -82,5 +82,5 @@ def saveSourceCode(sourceCode, type):
 if __name__ == "__main__":
     try:
         main()
-    except KeyboardInterrupt:
+    except Exception:
         pass
