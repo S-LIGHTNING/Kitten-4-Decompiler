@@ -85,10 +85,10 @@ class CommandLineUserInterface:
             return default
         return path
 
-    def askSaveFilePath(self, message="请选择文件保存位置", defaultType=None, fileTypes=(), default=None):
+    def askSaveFilePath(self, message="请选择文件保存位置", defaultType=None, fileTypes=(), default=None, initialfile = filename):
         root = tkinter.Tk()
         root.title(message)
-        path = filedialog.asksaveasfilename(defaultextension=defaultType, filetypes=fileTypes, title=message)
+        path = filedialog.asksaveasfilename(defaultextension=defaultType, filetypes=fileTypes, title=message, initialfile =initialfile)
         root.destroy()
         if default is not None and path == "":
             return default
