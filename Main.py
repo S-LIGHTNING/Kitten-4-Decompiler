@@ -43,9 +43,9 @@ def main():
     decompiler.onClean = lambda: log(INFO, "正在写入作品信息……")
     decompiler.onFinish = lambda: log(INFO, "反编译完成。")
     decompiler.start()
-    saveSourceCode(compiledWork, workInfo["type"])
+    saveSourceCode(compiledWork, workInfo["type"], workInfo["name")
 
-def saveSourceCode(sourceCode, type):
+def saveSourceCode(sourceCode, type, filename=""):
     input("按下回车键保存源码")
     defaultType = {
         "KITTEN4": ".bcm4",
@@ -60,7 +60,7 @@ def saveSourceCode(sourceCode, type):
         "COCO": (("CoCo 源码文件", ".json"), ("所有文件", ".*"))
     }[type]
     while True:
-        path = UI.askSaveFilePath(defaultType=defaultType, fileTypes=fileTypes)
+        path = UI.askSaveFilePath(defaultType=defaultType, fileTypes=fileTypes, initialfile = filename)
         if path == "":
             if UI.askYesNot("要取消保存文件吗？"):
                 print("已取消保存文件")
