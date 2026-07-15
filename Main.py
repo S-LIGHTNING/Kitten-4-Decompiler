@@ -3,6 +3,7 @@ import traceback
 
 from CommunityAPI import *
 from KittenDecompiler import KittenWorkDecompiler
+from Kitten3Decompiler import Kitten3WorkDecompiler
 from CoCoDecompiler import CoCoWorkDecompiler
 from MetaData import *
 from Tool import showError
@@ -18,9 +19,9 @@ def main():
     log(INFO, f"成功获取作品 \033[4;32m{workInfo['name']}\033[0m 的信息。")
     log(INFO, f"该作品由 \033[4;94m{workInfo['type']}\033[0m {workInfo['version']} 版本制作")
 
-    if workInfo["type"] == "KITTEN3" or workInfo["type"] == "KITTEN2":
-        if not UI.askYesNot("暂不支持该类型的作品，仍要继续吗"):
-            return
+    # if workInfo["type"] == "KITTEN3" or workInfo["type"] == "KITTEN2":
+    #     if not UI.askYesNot("暂不支持该类型的作品，仍要继续吗"):
+    #         return
 
     compiledWorkURL = getCompiledWorkURL(workInfo)
     log(INFO, f"成功获取作品 \033[4;32m{workInfo['name']}\033[0m 的编译文件 URL。")
@@ -30,8 +31,8 @@ def main():
 
     decompiler = {
         "KITTEN4": KittenWorkDecompiler,
-        "KITTEN3": KittenWorkDecompiler,
-        "KITTEN2": KittenWorkDecompiler,
+        "KITTEN3": Kitten3WorkDecompiler,
+        "KITTEN2": Kitten3WorkDecompiler,
         "COCO": CoCoWorkDecompiler,
     }[workInfo["type"]](workInfo, compiledWork)
     decompiler.onStart = lambda: log(INFO, f"开始反编译，作品名称：\033[4;32m{workInfo['name']}\033[0m。")
